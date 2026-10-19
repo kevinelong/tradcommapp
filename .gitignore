@@ -1,0 +1,4 @@
+# Binaries live in GitHub release assets, never in the git tree.
+*.apk
+*.aab
+*.apks
