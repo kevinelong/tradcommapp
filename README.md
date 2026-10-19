@@ -23,9 +23,9 @@ doing code math in a repeatable sequence, and knowing which topics let you down.
 
 Download the APK from [Releases](../../releases), then either:
 
-- **On the phone:** open the file and allow installs from your browser or file
+- **On the phone:** open `tradcomm-0.2.0.apk` and allow installs from your browser or file
   manager when Android asks.
-- **Over USB:** `adb install tradcomm-0.1.0.apk`
+- **Over USB:** `adb install tradcomm-0.2.0.apk`
 
 Requires Android 7.0 (API 24) or newer. It is a single universal APK, so it
 installs on arm64, arm32 and x86_64 devices.
@@ -33,9 +33,9 @@ installs on arm64, arm32 and x86_64 devices.
 Verify the download if you want to (the checksum is published on every release):
 
 ```sh
-sha256sum tradcomm-0.1.0.apk
+sha256sum tradcomm-0.2.0.apk
 # Windows:
-certutil -hashfile tradcomm-0.1.0.apk SHA256
+certutil -hashfile tradcomm-0.2.0.apk SHA256
 ```
 
 ## What it does
@@ -63,8 +63,10 @@ certutil -hashfile tradcomm-0.1.0.apk SHA256
 
 ## Current limitations, stated plainly
 
-- This is an **alpha**. `0.1.0` is signed with a development key, not a
-  production key, and is not in any app store.
+- This is an **alpha**. It is signed with a production release key, but it is
+  not in any app store and has not been tested on physical devices.
+- Builds after this one must be signed with the same key; keep the "same key"
+  warning in mind when reinstalling.
 - **Question citations have not yet been independently reviewed.** A licensed
   electrician review pass is in progress. Until it completes, treat explanations
   and article references as study aids that still need checking against your code

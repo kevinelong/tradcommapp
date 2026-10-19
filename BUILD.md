@@ -5,17 +5,17 @@ install steps and limitations are in [README.md](README.md); this file is the
 audit trail: what was built, from which source, with which toolchain, and what
 the signature does and does not prove.
 
-## tradcomm-0.1.0.apk
+## tradcomm-0.2.0.apk
 
 | Field | Value |
 |---|---|
 | Package | `com.tradcomm.tradcomm_app` |
-| `versionName` / `versionCode` | `0.1.0` / `1` |
+| `versionName` / `versionCode` | `0.2.0` / `2` |
 | Built | 2026-10-19 |
-| Size | 51,159,771 bytes (48.8 MB) |
-| SHA-256 | `9245a88289bc14f761d0ccaf4a1cd4ce71d6217f698119dabde1c1a8c0f54dc1` |
+| Size | 51,159,775 bytes (48.8 MB) |
+| SHA-256 | `7d16e3d30435300a1e8b0659b87f57ff0301f14f6e46422e08ecab537826d3f3` |
 | Source repository | private (`kevinelong/tradcomm`); distribution lives here |
-| Source commit | `b9d6c612d9db60888f81eaaca408f96b95979893` |
+| Source commit | `0171b95c989fdcea1a91bc6ac4fa4cbf4448a035` |
 | Build mode | `flutter build apk --release` (universal APK, R8 enabled, icon tree-shaking on) |
 | minSdk / targetSdk | 24 / 36 |
 
@@ -31,33 +31,42 @@ Toolchain:
 | Kotlin | 2.4.0 |
 | Android SDK platform | 36 |
 
-## Signing: read this before distributing
+### Signing
 
-The APK is signed with the **Android debug keystore**. `packages/app`'s
-`build.gradle.kts` sets `signingConfig = signingConfigs.getByName("debug")` for
-the release build because no production keystore exists yet.
+Signed with a **production release key**, not the Android debug key. Certificate:
 
-Consequences, all of them real:
+| Field | Value |
+|---|---|
+| Subject | `CN=TradComm, OU=Release, O=Kevin Ernest Long, C=US` |
+| Key | RSA 4096, validity 10000 days, PKCS#12 keystore |
+| Certificate SHA-256 | `285b76687c334a95b456356a8d8549923f30ad4c1af88828e7543d66ef4d507b` |
+| Signature schemes | v2 and v3 (verified with `apksigner verify`) |
 
-1. It is not acceptable for Google Play. Play requires a production key.
-2. **A future properly signed build cannot be installed over this one.** Android
-   refuses an update whose signing certificate differs; users will have to
-   uninstall first, which loses local study history and any licence state.
-3. Anyone can produce an APK with the same certificate, so the signature is not
-   evidence of provenance. The SHA-256 published here is the only integrity
-   check: compare it after download.
+Verify it yourself:
 
-Untested for release: the app was built and installed on an Android 14 (API 34)
-emulator; it has not been exercised on a physical device, and R8 shrinking was
-verified only by launching the app and reaching onboarding.
+```sh
+apksigner verify --print-certs tradcomm-0.2.0.apk
+```
+
+The keystore and its password are not in this repository and not in the release
+assets. **Every future update must be signed with the same key**: Android
+refuses an update signed with a different certificate, so a lost key means a new
+package id and a forced uninstall for every existing user.
+
+### Superseded build
+
+`v0.1.0` was signed with the debug key and is kept only for the record. Do not
+install it: a build signed with the release key cannot replace it, so you would
+have to uninstall (losing study history) to move to any later version.
 
 ## Runtime configuration shipped in this build
 
 - **API base URL:** `http://10.0.2.2:8080` - the Android emulator's alias for the
-  host machine. On a real phone that address is unreachable, so in this build
-  content sync and licence redemption will fail and the app runs on the bundled
-  bank with the 40-question free tier. A build pointed at a hosted API will be
-  published with a real base URL.
+  host machine. No API is deployed yet, so on a real phone content sync and
+  licence redemption fail and the app runs on the bundled bank with the
+  40-question free tier. The next build will be produced by
+  `scripts/build-release-apk.sh https://<host>` in the source repository, which
+  bakes a real base URL in and refuses to publish a debug-signed APK.
 - **Bundled content:** the 300-question bank is compiled into the APK
   (`assets/questions.json`) and copied into the local database on first launch.
 - **No telemetry endpoint is called.** The app has no analytics SDK.
@@ -81,13 +90,16 @@ source commit matches.
 
 - `flutter analyze` clean; `flutter test` 47 tests passing.
 - Release APK installed on API 34 and launched to the onboarding screen; version
-  read back from the device as `versionName=0.1.0`, `versionCode=1`.
+  read back from the device as `versionName=0.2.0`, `versionCode=2`.
+- Signature verified as the release certificate above; installing this APK over
+  the earlier debug-signed build is refused by Android with
+  `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, as expected for a key change.
 - Content bank validates against the schema in the source repository
   (`dart run bin/validate.dart` -> 0 issues).
 
 ## Publishing checklist for the next build
 
-1. Build with a production keystore, or repeat the debug-key caveat above.
+1. Build with the same production keystore (see the key-loss warning above).
 2. Point `--dart-define=TRADCOMM_API_BASE=https://...` at a reachable API before
    shipping a build that is expected to sync or redeem.
 3. Record size, SHA-256, source commit and toolchain here.
